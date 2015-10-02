@@ -3,6 +3,8 @@ using WebActivatorEx;
 using PowerBIAPI;
 using Swashbuckle.Application;
 using TRex.Metadata;
+using Swashbuckle.Swagger;
+using System.Web.Http.Description;
 
 [assembly: PreApplicationStartMethod(typeof(SwaggerConfig), "Register")]
 
@@ -35,6 +37,7 @@ namespace PowerBIAPI
                         //
                         c.SingleApiVersion("v1", "PowerBIAPI");
                         c.ReleaseTheTRex();
+                        c.DocumentFilter<CustomDocumentFilter>();
                         // If your API has multiple versions, use "MultipleApiVersions" instead of "SingleApiVersion".
                         // In this case, you must provide a lambda that tells Swashbuckle which actions should be
                         // included in the docs for a given API version. Like "SingleApiVersion", each call to "Version"
@@ -221,5 +224,15 @@ namespace PowerBIAPI
                         //c.EnableOAuth2Support("test-client-id", "test-realm", "Swagger UI");
                     });
         }
+
+        internal class CustomDocumentFilter : IDocumentFilter
+        {
+            public void Apply(SwaggerDocument swaggerDoc, SchemaRegistry schemaRegistry, IApiExplorer apiExplorer)
+            {
+                swaggerDoc.definitions["Object"].vendorExtensions["additionalProperties"] = true;
+
+            }
+        }
+
     }
 }

@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using System.Configuration;
 using PowerBIAPI.Models;
 using System.Text;
+using TRex.Metadata;
 
 namespace PowerBIAPI.Controllers
 {
@@ -20,6 +21,8 @@ namespace PowerBIAPI.Controllers
         public AuthenticationController authHelper = new AuthenticationController();
 
         
+        [HttpPost, Route("api/CreateDataset")]
+        [Metadata(Visibility = VisibilityType.Internal)]
         public async Task<HttpResponseMessage> CreateDataset([FromBody]PowerBIDataset datasetRequest)
         {
             bool datasetExists = false;
@@ -58,6 +61,28 @@ namespace PowerBIAPI.Controllers
             }
         }
 
+        [HttpPost, Route("api/AddRows")]
+        [Metadata("Add Rows", "Add rows to a Power BI dataset")]
+        public async Task<HttpResponseMessage> AddRows([FromUri][Metadata("Dataset ID", "The Dataset ID from Power BI", VisibilityType.Default)] string datasetId, [FromBody][Metadata("Rows", "Comma-separated list of JSON Objects for each row to be inputted")] string rows)
+        {
+            PowerBIRows powerBIrows = ConvertRowStringToPowerBIRows(rows);
+            await authHelper.CheckToken();
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization.AccessToken);
+                var result = await client.PostAsync(string.Format("https://api.powerbi.com/v1.0/myorg/datasets/{0}/tables/Product/rows", datasetId), new StringContent(JsonConvert.SerializeObject(powerBIrows), Encoding.UTF8, "application/json"));
+                if (result.StatusCode == HttpStatusCode.OK)
+                    return Request.CreateResponse(HttpStatusCode.OK);
+                else
+                    return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+        }
 
+        private PowerBIRows ConvertRowStringToPowerBIRows(string rows)
+        {
+            string arrayRows = "[ " + rows + " ]";
+            JArray rowsArray = JArray.Parse(rows);
+            return new PowerBIRows { rows = rowsArray };            
+        }
     }
 }
