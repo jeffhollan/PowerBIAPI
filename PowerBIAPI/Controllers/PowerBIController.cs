@@ -28,7 +28,7 @@ namespace PowerBIAPI.Controllers
             [FromBody][Metadata("Rows", "Comma-separated list of JSON Objects for each row to be inputted")] string rows)
         {
             PowerBIRows pbiRows = ConvertRowStringToPowerBIRows(rows);
-            return await AddRowsNew(datasetId, table, pbiRows);
+            return await AddRowsShared(datasetId, table, pbiRows);
         }
 
         [HttpPost, Route("api/AddRowsArray")]
@@ -39,12 +39,12 @@ namespace PowerBIAPI.Controllers
             [FromBody][Metadata("Rows Array", "Array of rows to add to Power BI")] JArray rowsArray)
         {
             PowerBIRows pbiRows = new PowerBIRows { rows = rowsArray.ToList() };
-            return await AddRowsNew(datasetId, table, pbiRows);
+            return await AddRowsShared(datasetId, table, pbiRows);
         }
 
-        private async Task<HttpResponseMessage> AddRowsNew(string datasetId, string table, PowerBIRows pbiRows)
+        private async Task<HttpResponseMessage> AddRowsShared(string datasetId, string table, PowerBIRows pbiRows)
         {
-            await authHelper.CheckToken();
+    //        await authHelper.CheckToken();
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization.AccessToken);
@@ -57,8 +57,10 @@ namespace PowerBIAPI.Controllers
         }
 
         private PowerBIRows ConvertRowStringToPowerBIRows(string rows)
-        {      
-            string arrayRows = "[ " + rows + " ]";
+        {
+            string arrayRows = rows;
+            if(!rows.StartsWith("["))      
+                 arrayRows = "[ " + rows + " ]";
             JArray rowsArray = JArray.Parse(arrayRows);
             return new PowerBIRows { rows = rowsArray.ToList() };            
         }
