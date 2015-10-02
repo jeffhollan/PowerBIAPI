@@ -8,6 +8,6 @@ namespace PowerBIAPI.Models
 {
     public class PowerBIRows
     {
-        public JArray rows { get; set; }
+        public List<JToken> rows { get; set; }
     }
 }

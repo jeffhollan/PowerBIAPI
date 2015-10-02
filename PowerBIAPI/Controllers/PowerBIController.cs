@@ -62,13 +62,29 @@ namespace PowerBIAPI.Controllers
         }
 
         [HttpPost, Route("api/AddRows")]
-        [Metadata("Add Rows", "Add rows to a Power BI dataset")]
+        [Metadata("Add Rows (string)", "Add rows to a Power BI dataset from a string")]
         [Swashbuckle.Swagger.Annotations.SwaggerResponse(HttpStatusCode.OK, "Added rows", typeof(PowerBIRows))]
-        public async Task<HttpResponseMessage> AddRows([FromUri][Metadata("Dataset ID", "The Dataset ID from Power BI", VisibilityType.Default)] string datasetId, 
+        public async Task<HttpResponseMessage> AddRowsString([FromUri][Metadata("Dataset ID", "The Dataset ID from Power BI", VisibilityType.Default)] string datasetId, 
             [FromUri][Metadata("Table Name", "The name of the Table from Power BI", VisibilityType.Default)] string table, 
             [FromBody][Metadata("Rows", "Comma-separated list of JSON Objects for each row to be inputted")] string rows)
         {
             PowerBIRows pbiRows = ConvertRowStringToPowerBIRows(rows);
+            return await AddRowsNew(datasetId, table, pbiRows);
+        }
+
+        [HttpPost, Route("api/AddRowsArray")]
+        [Metadata("Add Rows (array)", "Add rows to a Power BI dataset from an array")]
+        [Swashbuckle.Swagger.Annotations.SwaggerResponse(HttpStatusCode.OK, "Added rows", typeof(PowerBIRows))]
+        public async Task<HttpResponseMessage> AddRowsString([FromUri][Metadata("Dataset ID", "The Dataset ID from Power BI", VisibilityType.Default)] string datasetId,
+            [FromUri][Metadata("Table Name", "The name of the Table from Power BI", VisibilityType.Default)] string table,
+            [FromBody][Metadata("Rows Array", "Array of rows to add to Power BI")] JArray rowsArray)
+        {
+            PowerBIRows pbiRows = new PowerBIRows { rows = rowsArray.ToList() };
+            return await AddRowsNew(datasetId, table, pbiRows);
+        }
+
+        private async Task<HttpResponseMessage> AddRowsNew(string datasetId, string table, PowerBIRows pbiRows)
+        {
             await authHelper.CheckToken();
             using (var client = new HttpClient())
             {
@@ -82,10 +98,10 @@ namespace PowerBIAPI.Controllers
         }
 
         private PowerBIRows ConvertRowStringToPowerBIRows(string rows)
-        {
+        {      
             string arrayRows = "[ " + rows + " ]";
             JArray rowsArray = JArray.Parse(arrayRows);
-            return new PowerBIRows { rows = rowsArray };            
+            return new PowerBIRows { rows = rowsArray.ToList() };            
         }
     }
 }
