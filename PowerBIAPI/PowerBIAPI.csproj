@@ -126,6 +126,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\AuthResult.cs" />
     <Compile Include="Models\PowerBIDataset.cs" />
     <Compile Include="Models\PowerBIRows.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -133,6 +134,7 @@
   <ItemGroup>
     <Content Include="apiapp.json" />
     <Content Include="packages.config" />
+    <None Include="Properties\PublishProfiles\PowerBIAPI%28premium%29 %282%29.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

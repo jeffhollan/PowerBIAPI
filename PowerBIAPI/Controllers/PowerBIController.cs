@@ -17,7 +17,7 @@ namespace PowerBIAPI.Controllers
 {
     public class PowerBIController : ApiController
     {
-        public static AuthenticationResult authorization;
+        public static AuthResult authorization;
         public AuthenticationController authHelper = new AuthenticationController();
 
         
@@ -82,7 +82,7 @@ namespace PowerBIAPI.Controllers
         private PowerBIRows ConvertRowStringToPowerBIRows(string rows)
         {
             string arrayRows = "[ " + rows + " ]";
-            JArray rowsArray = JArray.Parse(rows);
+            JArray rowsArray = JArray.Parse(arrayRows);
             return new PowerBIRows { rows = rowsArray };            
         }
     }

@@ -11,6 +11,7 @@ using TRex.Metadata;
 using Newtonsoft.Json;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System.Web;
+using PowerBIAPI.Models;
 
 namespace PowerBIAPI.Controllers
 {
@@ -42,8 +43,8 @@ namespace PowerBIAPI.Controllers
             AuthenticationContext AC = new AuthenticationContext("https://login.windows.net/common/oauth2/authorize/");
             ClientCredential cc = new ClientCredential(clientId, clientSecret);
             AuthenticationResult ar = AC.AcquireTokenByAuthorizationCode(code, new Uri(redirectUrl), cc);
-            PowerBIController.authorization = ar;
-            await WriteTokenToStorage(ar);
+            PowerBIController.authorization = new AuthResult { Expires = ar.ExpiresOn.DateTime, AccessToken = ar.AccessToken, RefreshToken = ar.RefreshToken };
+            await WriteTokenToStorage(PowerBIController.authorization);
             return Request.CreateResponse(HttpStatusCode.OK, "Successfully Authenticated");
         }
 
@@ -55,26 +56,28 @@ namespace PowerBIAPI.Controllers
             if (PowerBIController.authorization == null)
                 return;
 
-            if (DateTime.UtcNow.CompareTo(PowerBIController.authorization.ExpiresOn) >= 0)
+            if (DateTime.UtcNow.CompareTo(PowerBIController.authorization.Expires) >= 0)
             {
                 AuthenticationContext AC = new AuthenticationContext("https://login.windows.net/common/oauth2/authorize/");
                 ClientCredential cc = new ClientCredential(clientId, clientSecret);
-                PowerBIController.authorization = await AC.AcquireTokenByRefreshTokenAsync(PowerBIController.authorization.RefreshToken, cc);
+                var ADALResult = await AC.AcquireTokenByRefreshTokenAsync(PowerBIController.authorization.RefreshToken, cc);
+                PowerBIController.authorization = new AuthResult { Expires = ADALResult.ExpiresOn.DateTime, AccessToken = ADALResult.AccessToken, RefreshToken = ADALResult.RefreshToken };
                 await WriteTokenToStorage(PowerBIController.authorization);
             }
         }
 
-        private async Task WriteTokenToStorage(AuthenticationResult ar)
+        private async Task WriteTokenToStorage(AuthResult ar)
         {
             var storage = Runtime.FromAppSettings().IsolatedStorage;
             await storage.WriteAsync("auth", JsonConvert.SerializeObject(ar));
         }
 
-        private async Task<AuthenticationResult> ReadTokenFromStorage()
+        private async Task<AuthResult> ReadTokenFromStorage()
         {
             var storage = Runtime.FromAppSettings().IsolatedStorage;
             var authString = await storage.ReadAsStringAsync("auth");
-            return JsonConvert.DeserializeObject<AuthenticationResult>(authString);
+            return JsonConvert.DeserializeObject<AuthResult>(authString);
         }
     }
 }
+;
