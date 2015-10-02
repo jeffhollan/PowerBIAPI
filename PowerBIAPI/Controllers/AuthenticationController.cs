@@ -48,7 +48,8 @@ namespace PowerBIAPI.Controllers
             return Request.CreateResponse(HttpStatusCode.OK, "Successfully Authenticated");
         }
 
-        public async Task CheckToken()
+
+        internal async Task CheckToken()
         {
             if (PowerBIController.authorization == null)
                 PowerBIController.authorization = await ReadTokenFromStorage();

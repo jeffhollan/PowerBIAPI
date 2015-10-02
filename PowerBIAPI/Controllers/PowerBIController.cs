@@ -20,47 +20,6 @@ namespace PowerBIAPI.Controllers
         public static AuthResult authorization;
         public AuthenticationController authHelper = new AuthenticationController();
 
-        
-        [HttpPost, Route("api/CreateDataset")]
-        [Metadata(Visibility = VisibilityType.Internal)]
-        public async Task<HttpResponseMessage> CreateDataset([FromBody]PowerBIDataset datasetRequest)
-        {
-            bool datasetExists = false;
-            await authHelper.CheckToken();
-
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization.AccessToken);
-                var getResult = await client.GetAsync("https://api.powerbi.com/v1.0/myorg/datasets");
-                JArray values = (JArray)JObject.Parse((await getResult.Content.ReadAsStringAsync()))["value"];
-                foreach(var obj in values)
-                {
-                    if ((string)obj["name"] == ConfigurationManager.AppSettings["dataset"])
-                    {
-                        datasetExists = true;
-                        ConfigurationManager.AppSettings.Add("datasetId", (string)obj["id"]);
-                    }
-                }
-
-                if (datasetExists)
-                    return Request.CreateResponse(HttpStatusCode.Conflict, "Dataset already existed. If you need to change the structure of the data you will need to delete the dataset in Power BI.");
-
-                var createResult = await client.PostAsync("https://api.powerbi.com/v1.0/myorg/datasets", new StringContent(JsonConvert.SerializeObject(datasetRequest), Encoding.UTF8, "application/json"));
-
-
-                if (createResult.StatusCode == HttpStatusCode.Created)
-                {
-                    string id = (string)JObject.Parse((await createResult.Content.ReadAsStringAsync()))["id"];
-                    ConfigurationManager.AppSettings.Add("datasetId", id);
-                    return Request.CreateResponse(HttpStatusCode.Created, "Dataset created, authorized and ready to go. Dataset ID: " + id);
-                    
-                }
-
-                else
-                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "There was an error creating the dataset: " + (await createResult.Content.ReadAsStringAsync()));
-            }
-        }
-
         [HttpPost, Route("api/AddRows")]
         [Metadata("Add Rows (string)", "Add rows to a Power BI dataset from a string")]
         [Swashbuckle.Swagger.Annotations.SwaggerResponse(HttpStatusCode.OK, "Added rows", typeof(PowerBIRows))]
