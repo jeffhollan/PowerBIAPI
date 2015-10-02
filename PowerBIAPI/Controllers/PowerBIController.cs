@@ -63,16 +63,17 @@ namespace PowerBIAPI.Controllers
 
         [HttpPost, Route("api/AddRows")]
         [Metadata("Add Rows", "Add rows to a Power BI dataset")]
+        [Swashbuckle.Swagger.Annotations.SwaggerResponse(HttpStatusCode.OK, "Added rows", typeof(PowerBIRows))]
         public async Task<HttpResponseMessage> AddRows([FromUri][Metadata("Dataset ID", "The Dataset ID from Power BI", VisibilityType.Default)] string datasetId, [FromBody][Metadata("Rows", "Comma-separated list of JSON Objects for each row to be inputted")] string rows)
         {
-            PowerBIRows powerBIrows = ConvertRowStringToPowerBIRows(rows);
+            PowerBIRows pbiRows = ConvertRowStringToPowerBIRows(rows);
             await authHelper.CheckToken();
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization.AccessToken);
-                var result = await client.PostAsync(string.Format("https://api.powerbi.com/v1.0/myorg/datasets/{0}/tables/Product/rows", datasetId), new StringContent(JsonConvert.SerializeObject(powerBIrows), Encoding.UTF8, "application/json"));
+                var result = await client.PostAsync(string.Format("https://api.powerbi.com/v1.0/myorg/datasets/{0}/tables/Product/rows", datasetId), new StringContent(JsonConvert.SerializeObject(pbiRows), Encoding.UTF8, "application/json"));
                 if (result.StatusCode == HttpStatusCode.OK)
-                    return Request.CreateResponse(HttpStatusCode.OK);
+                    return Request.CreateResponse<PowerBIRows>(HttpStatusCode.OK, pbiRows);
                 else
                     return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
