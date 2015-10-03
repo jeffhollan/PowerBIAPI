@@ -43,7 +43,7 @@ namespace PowerBIAPI.Controllers
             AuthenticationContext AC = new AuthenticationContext("https://login.windows.net/common/oauth2/authorize/");
             ClientCredential cc = new ClientCredential(clientId, clientSecret);
             AuthenticationResult ar = AC.AcquireTokenByAuthorizationCode(code, new Uri(redirectUrl), cc);
-            PowerBIController.authorization = new AuthResult { Expires = ar.ExpiresOn.DateTime, AccessToken = ar.AccessToken, RefreshToken = ar.RefreshToken };
+            PowerBIController.authorization = new AuthResult { Expires = ar.ExpiresOn.UtcDateTime, AccessToken = ar.AccessToken, RefreshToken = ar.RefreshToken };
             await WriteTokenToStorage(PowerBIController.authorization);
             return Request.CreateResponse(HttpStatusCode.OK, "Successfully Authenticated");
         }
@@ -62,7 +62,7 @@ namespace PowerBIAPI.Controllers
                 AuthenticationContext AC = new AuthenticationContext("https://login.windows.net/common/oauth2/authorize/");
                 ClientCredential cc = new ClientCredential(clientId, clientSecret);
                 var ADALResult = await AC.AcquireTokenByRefreshTokenAsync(PowerBIController.authorization.RefreshToken, cc);
-                PowerBIController.authorization = new AuthResult { Expires = ADALResult.ExpiresOn.DateTime, AccessToken = ADALResult.AccessToken, RefreshToken = ADALResult.RefreshToken };
+                PowerBIController.authorization = new AuthResult { Expires = ADALResult.ExpiresOn.UtcDateTime, AccessToken = ADALResult.AccessToken, RefreshToken = ADALResult.RefreshToken };
                 await WriteTokenToStorage(PowerBIController.authorization);
             }
         }

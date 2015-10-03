@@ -44,7 +44,7 @@ namespace PowerBIAPI.Controllers
 
         private async Task<HttpResponseMessage> AddRowsShared(string datasetId, string table, PowerBIRows pbiRows)
         {
-    //        await authHelper.CheckToken();
+            await authHelper.CheckToken();
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authorization.AccessToken);
