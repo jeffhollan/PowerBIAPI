@@ -133,8 +133,10 @@
   <ItemGroup>
     <Content Include="apiapp.json" />
     <Content Include="packages.config" />
+    <Content Include="index.html" />
     <None Include="Properties\PublishProfiles\PowerBIAPI%28premium%29 %282%29.pubxml" />
     <None Include="Properties\PublishProfiles\PowerBIAPI%28premium%29 %283%29.pubxml" />
+    <None Include="Properties\PublishProfiles\PowerBIhollantest5%28hollantest5%29.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

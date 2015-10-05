@@ -18,7 +18,7 @@ namespace PowerBIAPI.Controllers
     public class AuthenticationController : ApiController
     {
         private string clientId = ConfigurationManager.AppSettings["clientId"];
-        private string redirectUrl = "https://" + ConfigurationManager.AppSettings["siteUrl"] + ".azurewebsites.net/redirect";
+        private string redirectUrl = "https://" + ConfigurationManager.AppSettings["siteUrl"].ToLower() + ".azurewebsites.net/redirect";
         private string clientSecret = ConfigurationManager.AppSettings["clientSecret"];
 
         [Metadata(Visibility = VisibilityType.Internal)]
@@ -42,7 +42,7 @@ namespace PowerBIAPI.Controllers
         {
             AuthenticationContext AC = new AuthenticationContext("https://login.windows.net/common/oauth2/authorize/");
             ClientCredential cc = new ClientCredential(clientId, clientSecret);
-            AuthenticationResult ar = AC.AcquireTokenByAuthorizationCode(code, new Uri(redirectUrl), cc);
+            AuthenticationResult ar = await AC.AcquireTokenByAuthorizationCodeAsync(code, new Uri(redirectUrl), cc);
             PowerBIController.authorization = new AuthResult { Expires = ar.ExpiresOn.UtcDateTime, AccessToken = ar.AccessToken, RefreshToken = ar.RefreshToken };
             await WriteTokenToStorage(PowerBIController.authorization);
             return Request.CreateResponse(HttpStatusCode.OK, "Successfully Authenticated");
